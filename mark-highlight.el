@@ -41,7 +41,7 @@
 (setq mark-highlight-managed-symbols '())
 
 (defun mark-highlight-selected-symbol ()
-  (buffer-substring (mark) (point)))
+  (buffer-substring-no-properties (mark) (point)))
 
 (defun mark-highlight-select-next-face ()
   (setq mark-highlight-current-face (+ mark-highlight-current-face 1))
@@ -86,7 +86,8 @@
               (if overlays
                   (progn
                     (mapc 'delete-overlay overlays)
-                    (mark-highlight-delete-managed-symbol symbol))
+                    (mark-highlight-delete-managed-symbol symbol)
+                    (deactivate-mark))
                 (let* ((overlays (mark-highlight-make-overlays-for-symbol symbol))
                        (n (length overlays)))
                   (mark-highlight-add-managed-symbol symbol overlays)
