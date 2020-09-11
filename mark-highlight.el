@@ -26,26 +26,35 @@
   '((t (:background "turquoise" :foreground "black"))) "mark-highlight-face-8")
 
 (defcustom mark-highlight-faces '(mark-highlight-face-1
-                             mark-highlight-face-2
-                             mark-highlight-face-3
-                             mark-highlight-face-4
-                             mark-highlight-face-5
-                             mark-highlight-face-6
-                             mark-highlight-face-7
-                             mark-highlight-face-8)
+                                  mark-highlight-face-2
+                                  mark-highlight-face-3
+                                  mark-highlight-face-4
+                                  mark-highlight-face-5
+                                  mark-highlight-face-6
+                                  mark-highlight-face-7
+                                  mark-highlight-face-8)
   "Mark Highlight Custom Faces"
   :type '(repeat face))
 
 (setq mark-highlight-current-face 0)
 
-(setq mark-highlight-managed-symbols '())
-
-(defun mark-highlight-selected-symbol ()
-  (buffer-substring-no-properties (mark) (point)))
-
 (defun mark-highlight-select-next-face ()
   (setq mark-highlight-current-face (+ mark-highlight-current-face 1))
   (setq mark-highlight-current-face (% mark-highlight-current-face n)))
+
+(setq mark-highlight-managed-symbols (make-hash-table :test 'equal))
+
+(defun mark-highlight-find-overlays-for-symbol (symbol)
+  (gethash symbol mark-highlight-managed-symbols))
+
+(defun mark-highlight-add-managed-symbol (symbol overlays)
+  (puthash symbol overlays mark-highlight-managed-symbols))
+
+(defun mark-highlight-delete-managed-symbol (symbol)
+  (remhash symbol mark-highlight-managed-symbols))
+
+(defun mark-highlight-selected-symbol ()
+  (buffer-substring-no-properties (mark) (point)))
 
 (defun mark-highlight-for-all-matched-symbols (symbol f)
   (goto-char (point-min))
@@ -66,15 +75,6 @@
          (overlays (mark-highlight-for-all-matched-symbols symbol (lambda (start end) (mark-highlight-make-one-overlay start end face)))))
     (mark-highlight-select-next-face)
     overlays))
-
-(defun mark-highlight-find-overlays-for-symbol (symbol)
-  (lax-plist-get mark-highlight-managed-symbols symbol))
-
-(defun mark-highlight-add-managed-symbol (symbol overlays)
-  (setq mark-highlight-managed-symbols (lax-plist-put mark-highlight-managed-symbols symbol overlays)))
-
-(defun mark-highlight-delete-managed-symbol (symbol)
-  (setq mark-highlight-managed-symbols (lax-plist-put mark-highlight-managed-symbols symbol nil)))
 
 (defun mark-highlight-toggle ()
   (interactive)
