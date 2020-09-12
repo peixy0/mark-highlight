@@ -63,35 +63,46 @@
       (push (funcall f (match-beginning 0) (match-end 0)) result))
     result))
 
-(defun mark-highlight-make-one-overlay (start end face)
+(defun mark-highlight-make-one-overlay (start end symbol face)
   (let ((overlay (make-overlay start end)))
     (overlay-put overlay 'face face)
     (overlay-put overlay 'evaporate t)
+    (overlay-put overlay 'mark-highlight-symbol symbol)
     overlay))
 
 (defun mark-highlight-make-overlays-for-symbol (symbol)
   (let* ((n (length mark-highlight-faces))
          (face (elt mark-highlight-faces mark-highlight-current-face))
-         (overlays (mark-highlight-for-all-matched-symbols symbol (lambda (start end) (mark-highlight-make-one-overlay start end face)))))
+         (f (lambda (start end) (mark-highlight-make-one-overlay start end symbol face)))
+         (overlays (mark-highlight-for-all-matched-symbols symbol f)))
     (mark-highlight-select-next-face)
     overlays))
+
+(defun mark-highlight-delete-overlays-for-symbol (symbol)
+  (mapc 'delete-overlay
+        (mark-highlight-find-overlays-for-symbol symbol))
+  (mark-highlight-delete-managed-symbol symbol))
+
+(defun mark-highlight-find-symbols-at-point ()
+  (seq-filter 'mark-highlight-find-overlays-for-symbol
+              (mapcar (lambda (overlay) (overlay-get overlay 'mark-highlight-symbol))
+                      (overlays-at (point)))))
 
 (defun mark-highlight-toggle ()
   (interactive)
   (save-excursion
     (save-restriction
-      (let ((symbol (mark-highlight-selected-symbol)))
-        (if (> (length symbol) 0)
-            (let ((overlays (mark-highlight-find-overlays-for-symbol symbol)))
-              (if overlays
-                  (progn
-                    (mapc 'delete-overlay overlays)
-                    (mark-highlight-delete-managed-symbol symbol)
-                    (deactivate-mark))
-                (let* ((overlays (mark-highlight-make-overlays-for-symbol symbol))
-                       (n (length overlays)))
-                  (mark-highlight-add-managed-symbol symbol overlays)
-                  (message "marked %d occurrence%s" n (if (> n 1) "s" ""))))))))))
+      (let ((symbols (mark-highlight-find-symbols-at-point)))
+        (if (> (length symbols) 0)
+            (mapc 'mark-highlight-delete-overlays-for-symbol symbols)
+          (let ((symbol (mark-highlight-selected-symbol)))
+            (if (> (length symbol) 0)
+                (if (mark-highlight-find-overlays-for-symbol symbol)
+                    (mark-highlight-delete-overlays-for-symbol symbol)
+                  (let* ((overlays (mark-highlight-make-overlays-for-symbol symbol))
+                         (n (length overlays)))
+                    (mark-highlight-add-managed-symbol symbol overlays)
+                    (message "marked %d occurrence%s" n (if (> n 1) "s" "")))))))))))
 
 (defun mark-highlight-reset-universe ()
   (interactive)
