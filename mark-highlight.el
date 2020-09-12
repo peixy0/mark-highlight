@@ -92,17 +92,16 @@
   (interactive)
   (save-excursion
     (save-restriction
-      (let ((symbols (mark-highlight-find-symbols-at-point)))
-        (if (> (length symbols) 0)
-            (mapc 'mark-highlight-delete-overlays-for-symbol symbols)
-          (let ((symbol (mark-highlight-selected-symbol)))
-            (if (> (length symbol) 0)
-                (if (mark-highlight-find-overlays-for-symbol symbol)
-                    (mark-highlight-delete-overlays-for-symbol symbol)
-                  (let* ((overlays (mark-highlight-make-overlays-for-symbol symbol))
-                         (n (length overlays)))
-                    (mark-highlight-add-managed-symbol symbol overlays)
-                    (message "marked %d occurrence%s" n (if (> n 1) "s" "")))))))))))
+      (let ((symbol (mark-highlight-selected-symbol)))
+        (if (> (length symbol) 0)
+            (if (mark-highlight-find-overlays-for-symbol symbol)
+                (mark-highlight-delete-overlays-for-symbol symbol)
+              (let* ((overlays (mark-highlight-make-overlays-for-symbol symbol))
+                     (n (length overlays)))
+                (mark-highlight-add-managed-symbol symbol overlays)
+                (message "marked %d occurrence%s" n (if (> n 1) "s" ""))))
+          (mapc 'mark-highlight-delete-overlays-for-symbol
+                (mark-highlight-find-symbols-at-point)))))))
 
 (defun mark-highlight-reset-universe ()
   (interactive)
