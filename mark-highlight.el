@@ -1,5 +1,5 @@
-;; (bind-key "<f3>" 'mark-highlight-toggle)
-;; (bind-key "S-<f3>" 'mark-highlight-reset-universe)
+;; (bind-key "<f5>" 'mark-highlight-toggle)
+;; (bind-key "S-<f5>" 'mark-highlight-reset-universe)
 
 (defface mark-highlight-face-1
   '((t (:background "yellow" :foreground "black"))) "mark-highlight-face-1")
@@ -54,7 +54,8 @@
   (remhash symbol mark-highlight-managed-symbols))
 
 (defun mark-highlight-selected-symbol ()
-  (buffer-substring-no-properties (mark) (point)))
+  (funcall (if case-fold-search 'downcase 'identity)
+           (buffer-substring-no-properties (mark) (point))))
 
 (defun mark-highlight-for-all-matched-symbols (symbol f)
   (goto-char (point-min))
