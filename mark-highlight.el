@@ -107,7 +107,7 @@
 (defun mark-highlight-reset-universe ()
   (interactive)
   (setq mark-highlight-current-face 0)
-  (setq mark-highlight-managed-symbols '())
+  (setq mark-highlight-managed-symbols (make-hash-table :test 'equal))
   (remove-overlays (point-min) (point-max)))
 
 (provide 'mark-highlight)
